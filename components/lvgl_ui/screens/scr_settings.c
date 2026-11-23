@@ -1,12 +1,43 @@
 #include "scr_settings.h"
 #include "screens.h"
 #include "ui.h"             /* Squareline widgets: ui_scrSettings and its children */
+#include "bsp_display.h"
 #include "esp_log.h"
 
 static const char *TAG = "scr_settings";
 
+/* Defaults */
+#define SETTINGS_DEFAULT_BRIGHTNESS  100
+#define SETTINGS_MIN_BRIGHTNESS      10     /* slider minimum: never a black screen */
+#define SETTINGS_MAX_BRIGHTNESS      100
+
+/* ------------------------------------------------------------------ */
+
+/** Apply a brightness value: LEDC backlight + percentage label. */
+static void apply_brightness(int32_t value)
+{
+    if (value < SETTINGS_MIN_BRIGHTNESS) value = SETTINGS_MIN_BRIGHTNESS;
+    if (value > SETTINGS_MAX_BRIGHTNESS) value = SETTINGS_MAX_BRIGHTNESS;
+    bsp_display_set_brightness((uint8_t)value);
+    lv_label_set_text_fmt(ui_lblBrightnessPct, "%d%%", (int)value);
+}
+
+/* Slider moved: change the physical brightness in real time. */
+static void on_brightness_changed(lv_event_t *e)
+{
+    lv_obj_t *slider = lv_event_get_target(e);
+    apply_brightness(lv_slider_get_value(slider));
+}
+
+/* ------------------------------------------------------------------ */
+
 void scr_settings_prepare(void)
 {
+    lv_slider_set_range(ui_sldBrightness, SETTINGS_MIN_BRIGHTNESS, SETTINGS_MAX_BRIGHTNESS);
+    lv_obj_add_event_cb(ui_sldBrightness, on_brightness_changed, LV_EVENT_VALUE_CHANGED, NULL);
+
+    lv_label_set_text_fmt(ui_lblBuild, "Compilado: %s %s", __DATE__, __TIME__);
+
     /* Dragging the slider / switch horizontally must not change screen:
      * keep their gestures from bubbling up to the screen. */
     lv_obj_clear_flag(ui_sldBrightness, LV_OBJ_FLAG_GESTURE_BUBBLE);
@@ -18,6 +49,12 @@ void scr_settings_prepare(void)
 void scr_settings_init(void)
 {
     ESP_LOGD(TAG, "init");
+    /* Sync the slider with the real backlight (100 after the splash fade-in).
+     * lv_slider_set_value() does not emit VALUE_CHANGED, so set the label too. */
+    int32_t current = bsp_display_get_brightness();
+    if (current < SETTINGS_MIN_BRIGHTNESS) current = SETTINGS_MIN_BRIGHTNESS;
+    lv_slider_set_value(ui_sldBrightness, current, LV_ANIM_OFF);
+    lv_label_set_text_fmt(ui_lblBrightnessPct, "%d%%", (int)current);
 }
 
 void scr_settings_uninit(void)
