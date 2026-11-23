@@ -3,6 +3,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "esp_log.h"
+#include "ui_input.h"
 
 #define UPDATE_QUEUE_DEPTH 16
 
@@ -27,10 +28,13 @@ typedef void (*handler_fn_t)(void *data);
  * enum values and evaluates unknown identifiers as 0, so it always compiled a
  * one-entry NULL table and every command was silently dropped. */
 
+/* Physical button: turn it into an ENTER key press of the keypad indev,
+ * which LVGL delivers as LV_EVENT_KEY to the focused (active) screen. */
 static void handle_button_press(void *data)
 {
     (void)data;
     ESP_LOGD(TAG, "button press");
+    ui_input_push_enter();
 }
 
 static const handler_fn_t s_handlers[UI_UPDATE_MAX] = {
