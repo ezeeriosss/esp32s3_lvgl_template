@@ -1,11 +1,16 @@
 #include "esp_lvgl_port.h"
+#include "esp_log.h"
 
 #include "bsp_i2c.h"
 #include "bsp_display.h"
 #include "bsp_touch.h"
 #include "bsp_lvgl.h"
+#include "bsp_battery.h"
+#include "bsp_temp.h"
 
 #include "lvgl_ui.h"
+
+static const char *TAG = "main";
 
 /** @brief App entry point */
 void app_main(void) {
@@ -15,7 +20,16 @@ void app_main(void) {
     bsp_touch_init(i2c_bus);
     ESP_ERROR_CHECK(bsp_lvgl_init());
     bsp_display_brightness_init();
-    bsp_display_set_brightness(100);
+    // Start with the backlight off: the splash screen fades it in
+    // (bsp_display_fade_in() from scr_splash_init()).
+    bsp_display_set_brightness(0);
+    // Sensors read by the home screen
+    bsp_battery_init();
+    // A temperature sensor failure must not abort the app: the home screen
+    // shows a placeholder instead of the value.
+    if (bsp_temp_init() != ESP_OK) {
+        ESP_LOGW(TAG, "Temperature sensor init failed, home will show --.- C");
+    }
     // Always take LVGL mutex before doing anything with LVGL
     if (lvgl_port_lock(0)) {
         lvgl_ui_start();

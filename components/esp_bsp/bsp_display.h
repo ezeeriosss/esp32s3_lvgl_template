@@ -2,6 +2,7 @@
 #define __BSP_DISPLAY_H__
 
 #include <stdio.h>
+#include <stdint.h>
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
@@ -54,6 +55,20 @@ void bsp_display_init(void);
 void bsp_display_brightness_init(void);
 void bsp_display_set_brightness(uint8_t brightness);
 uint8_t bsp_display_get_brightness(void);
+
+/**
+ * @brief Fade the backlight in from 0 % to 100 % using an lv_anim_t.
+ *
+ * Each animation step calls bsp_display_set_brightness() (LEDC duty).
+ * Calling it again restarts the fade from 0 %.
+ *
+ * @warning Must be called from LVGL context only (an LVGL event callback,
+ *          an lv_timer / lv_anim callback, or a screen controller callback
+ *          driven by the UI timer), or with the LVGL port lock taken.
+ *
+ * @param duration_ms Fade duration in milliseconds.
+ */
+void bsp_display_fade_in(uint32_t duration_ms);
 
 esp_lcd_panel_io_handle_t bsp_display_get_io_handle(void);
 esp_lcd_panel_handle_t bsp_display_get_panel_handle(void);
