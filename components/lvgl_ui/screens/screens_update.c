@@ -22,14 +22,20 @@ static QueueHandle_t s_queue = NULL;
 
 typedef void (*handler_fn_t)(void *data);
 
-/* Placeholder — remove when UI_UPDATE_MAX has real commands */
-#if UI_UPDATE_MAX == 0
-static const handler_fn_t s_handlers[] = { NULL };
-#else
+/* Note: the table is always sized with UI_UPDATE_MAX. A previous
+ * `#if UI_UPDATE_MAX == 0` guard never worked: the preprocessor does not know
+ * enum values and evaluates unknown identifiers as 0, so it always compiled a
+ * one-entry NULL table and every command was silently dropped. */
+
+static void handle_button_press(void *data)
+{
+    (void)data;
+    ESP_LOGD(TAG, "button press");
+}
+
 static const handler_fn_t s_handlers[UI_UPDATE_MAX] = {
-    /* [UI_UPDATE_TEMPERATURE] = handle_temperature, */
+    [UI_UPDATE_BUTTON_PRESS] = handle_button_press,
 };
-#endif
 
 /* ------------------------------------------------------------------ */
 
