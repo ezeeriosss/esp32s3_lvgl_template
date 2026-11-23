@@ -7,6 +7,7 @@
 #include "bsp_lvgl.h"
 #include "bsp_battery.h"
 #include "bsp_temp.h"
+#include "bsp_button.h"
 
 #include "lvgl_ui.h"
 
@@ -30,6 +31,9 @@ void app_main(void) {
     if (bsp_temp_init() != ESP_OK) {
         ESP_LOGW(TAG, "Temperature sensor init failed, home will show --.- C");
     }
+    // Physical button (BOOT). Its click callback is registered by the UI
+    // (ui_input_init) and forwarded through ui_update_cmd().
+    ESP_ERROR_CHECK(bsp_button_init());
     // Always take LVGL mutex before doing anything with LVGL
     if (lvgl_port_lock(0)) {
         lvgl_ui_start();
