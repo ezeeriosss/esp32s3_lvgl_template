@@ -83,6 +83,11 @@ void ui_screens_gesture_cb(lv_event_t *e)
     lv_indev_t *indev = lv_indev_get_act();
     if (indev == NULL) return;
 
+    /* Guards: a swipe that is really a scroll, or one that arrives while a
+     * screen load animation is still running, must not navigate. */
+    if (lv_indev_get_scroll_obj(indev) != NULL) return;
+    if (lv_disp_get_default()->scr_to_load != NULL) return;
+
     lv_dir_t dir = lv_indev_get_gesture_dir(indev);
     ui_screens_t current = ui_screens_get_current();
     ui_screens_t target;
@@ -100,6 +105,7 @@ void ui_screens_gesture_cb(lv_event_t *e)
 
     ESP_LOGD(TAG, "swipe %s -> %s", screen_configs[current].name, screen_configs[target].name);
     ui_screens_navigate_anim(target, anim, SCREEN_SWIPE_ANIM_MS);
+    lv_indev_wait_release(indev);   /* one swipe = one navigation */
 }
 
 void ui_screens_on_activity(void)
