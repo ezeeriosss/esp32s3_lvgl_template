@@ -20,10 +20,13 @@ void app_main(void) {
     bsp_touch_init(i2c_bus);
     ESP_ERROR_CHECK(bsp_lvgl_init());
     bsp_display_brightness_init();
-    bsp_display_set_brightness(100);
-    // Sensors read by the home screen. A failure here must not abort the app:
-    // the home screen shows a placeholder instead of the value.
+    // Start with the backlight off: the splash screen fades it in
+    // (bsp_display_fade_in() from scr_splash_init()).
+    bsp_display_set_brightness(0);
+    // Sensors read by the home screen
     bsp_battery_init();
+    // A temperature sensor failure must not abort the app: the home screen
+    // shows a placeholder instead of the value.
     if (bsp_temp_init() != ESP_OK) {
         ESP_LOGW(TAG, "Temperature sensor init failed, home will show --.- C");
     }
