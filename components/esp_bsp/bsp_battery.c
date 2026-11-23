@@ -113,3 +113,81 @@ void bsp_battery_get_voltage(float *voltage, uint16_t *adc_value)
         }   
     }
 }
+
+
+/* Li-ion discharge curve: voltage (V) -> charge (%), highest voltage first. */
+#define BATTERY_AVG_SAMPLES 8
+
+typedef struct {
+    float voltage;
+    int   percent;
+} battery_curve_point_t;
+
+static const battery_curve_point_t s_li_ion_curve[] = {
+    { 4.20f, 100 },
+    { 4.10f,  90 },
+    { 4.00f,  79 },
+    { 3.90f,  65 },
+    { 3.80f,  50 },
+    { 3.70f,  32 },
+    { 3.60f,  18 },
+    { 3.50f,   8 },
+    { 3.30f,   0 },
+};
+
+#define LI_ION_CURVE_LEN (sizeof(s_li_ion_curve) / sizeof(s_li_ion_curve[0]))
+
+static int battery_voltage_to_percent(float v)
+{
+    if (v >= s_li_ion_curve[0].voltage) {
+        return 100;
+    }
+    if (v <= s_li_ion_curve[LI_ION_CURVE_LEN - 1].voltage) {
+        return 0;
+    }
+    for (size_t i = 1; i < LI_ION_CURVE_LEN; i++) {
+        const battery_curve_point_t *hi = &s_li_ion_curve[i - 1];
+        const battery_curve_point_t *lo = &s_li_ion_curve[i];
+        if (v >= lo->voltage) {
+            float t = (v - lo->voltage) / (hi->voltage - lo->voltage);
+            int pct = (int)(lo->percent + t * (hi->percent - lo->percent) + 0.5f);
+            if (pct < 0) pct = 0;
+            if (pct > 100) pct = 100;
+            return pct;
+        }
+    }
+    return 0;
+}
+
+int bsp_battery_get_percent(float *out_voltage)
+{
+    if (out_voltage) {
+        *out_voltage = -1.0f;
+    }
+    if (adc1_handle == NULL) {
+        /* bsp_battery_init() was not called */
+        return -1;
+    }
+
+    float sum = 0.0f;
+    int valid = 0;
+    for (int i = 0; i < BATTERY_AVG_SAMPLES; i++) {
+        /* bsp_battery_get_voltage() does not write the voltage when the ADC
+         * calibration failed, so start from an invalid value. */
+        float v = -1.0f;
+        bsp_battery_get_voltage(&v, NULL);
+        if (v >= 0.0f) {
+            sum += v;
+            valid++;
+        }
+    }
+    if (valid == 0) {
+        return -1;
+    }
+
+    float avg = sum / (float)valid;
+    if (out_voltage) {
+        *out_voltage = avg;
+    }
+    return battery_voltage_to_percent(avg);
+}
