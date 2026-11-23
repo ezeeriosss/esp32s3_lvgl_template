@@ -4,7 +4,7 @@
 
 static const char *TAG = "nav_bar";
 
-#define NAV_BAR_ANIM_MS   250   /* same animation as the swipe gestures */
+#define NAV_BAR_ANIM_MS   SCREEN_SWIPE_ANIM_MS   /* same animation as the swipe gestures */
 #define NAV_ITEM_WIDTH    80
 
 typedef struct {

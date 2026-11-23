@@ -64,6 +64,18 @@ void          ui_screens_navigate_anim(ui_screens_t screen, lv_scr_load_anim_t a
 /** Returns the Squareline lv_obj_t* registered for a screen (NULL if invalid). */
 lv_obj_t     *ui_screens_get_obj(ui_screens_t screen);
 
+/** Duration of the swipe / nav bar screen slide animation */
+#define SCREEN_SWIPE_ANIM_MS 250
+
+/**
+ * Shared LV_EVENT_GESTURE handler. Register it in prepare() of Home, System
+ * and Settings. Order (no wrap-around): HOME <-> SYSTEM <-> SETTINGS.
+ *   LV_DIR_LEFT  (finger right -> left) -> next screen,     MOVE_LEFT
+ *   LV_DIR_RIGHT (finger left -> right) -> previous screen, MOVE_RIGHT
+ * Does nothing at the ends.
+ */
+void          ui_screens_gesture_cb(lv_event_t *e);
+
 /**
  * Signal user activity (touch, encoder …). Resets the LVGL inactivity timer
  * used by screens_timeout to decide when to dim / turn off the display.

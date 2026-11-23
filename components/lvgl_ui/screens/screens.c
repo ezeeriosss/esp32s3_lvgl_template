@@ -77,6 +77,31 @@ lv_obj_t *ui_screens_get_obj(ui_screens_t screen)
     return cfg->screen_obj ? *cfg->screen_obj : NULL;
 }
 
+void ui_screens_gesture_cb(lv_event_t *e)
+{
+    (void)e;
+    lv_indev_t *indev = lv_indev_get_act();
+    if (indev == NULL) return;
+
+    lv_dir_t dir = lv_indev_get_gesture_dir(indev);
+    ui_screens_t current = ui_screens_get_current();
+    ui_screens_t target;
+    lv_scr_load_anim_t anim;
+
+    if (dir == LV_DIR_LEFT && current >= SCREEN_HOME && current < SCREEN_SETTINGS) {
+        target = (ui_screens_t)(current + 1);
+        anim   = LV_SCR_LOAD_ANIM_MOVE_LEFT;
+    } else if (dir == LV_DIR_RIGHT && current > SCREEN_HOME && current <= SCREEN_SETTINGS) {
+        target = (ui_screens_t)(current - 1);
+        anim   = LV_SCR_LOAD_ANIM_MOVE_RIGHT;
+    } else {
+        return;     /* vertical swipe, or already at an end */
+    }
+
+    ESP_LOGD(TAG, "swipe %s -> %s", screen_configs[current].name, screen_configs[target].name);
+    ui_screens_navigate_anim(target, anim, SCREEN_SWIPE_ANIM_MS);
+}
+
 void ui_screens_on_activity(void)
 {
     lv_disp_trig_activity(lv_disp_get_default());
