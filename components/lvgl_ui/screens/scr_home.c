@@ -3,6 +3,7 @@
 #include "ui.h"             /* Squareline widgets: ui_scrHome, ui_arcBattery, ui_lbl* */
 #include "bsp_battery.h"
 #include "bsp_temp.h"
+#include "esp_timer.h"
 #include "esp_log.h"
 #include <stdio.h>
 
@@ -54,10 +55,21 @@ static void refresh_temperature(void)
     }
 }
 
+static void refresh_uptime(void)
+{
+    uint64_t s = (uint64_t)esp_timer_get_time() / 1000000ULL;    /* us -> s */
+    /* Hours may go past 99, that is fine (HHH:MM:SS) */
+    lv_label_set_text_fmt(ui_lblUptime, "%02lu:%02lu:%02lu",
+                          (unsigned long)(s / 3600ULL),
+                          (unsigned long)((s / 60ULL) % 60ULL),
+                          (unsigned long)(s % 60ULL));
+}
+
 static void refresh_all(void)
 {
     refresh_battery();
     refresh_temperature();
+    refresh_uptime();
 }
 
 static void home_timer_cb(lv_timer_t *timer)
