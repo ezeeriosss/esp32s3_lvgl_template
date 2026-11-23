@@ -20,6 +20,9 @@ extern lv_obj_t * ui_lblTemp;
 extern lv_obj_t * ui_lblUptime;
 extern lv_obj_t * ui_lblTempTitle;
 extern lv_obj_t * ui_lblUptimeTitle;
+extern lv_obj_t * ui_pnlStatus;
+extern lv_obj_t * ui_lblStatusIcon;
+extern lv_obj_t * ui_lblStatusText;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus

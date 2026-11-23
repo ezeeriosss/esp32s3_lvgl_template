@@ -12,6 +12,9 @@ lv_obj_t * ui_lblTemp = NULL;
 lv_obj_t * ui_lblUptime = NULL;
 lv_obj_t * ui_lblTempTitle = NULL;
 lv_obj_t * ui_lblUptimeTitle = NULL;
+lv_obj_t * ui_pnlStatus = NULL;
+lv_obj_t * ui_lblStatusIcon = NULL;
+lv_obj_t * ui_lblStatusText = NULL;
 // event funtions
 
 // build funtions
@@ -22,10 +25,10 @@ void ui_scrHome_screen_init(void)
     lv_obj_clear_flag(ui_scrHome, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
     ui_arcBattery = lv_arc_create(ui_scrHome);
-    lv_obj_set_width(ui_arcBattery, 140);
-    lv_obj_set_height(ui_arcBattery, 140);
-    lv_obj_set_x(ui_arcBattery, -70);
-    lv_obj_set_y(ui_arcBattery, 0);
+    lv_obj_set_width(ui_arcBattery, 130);
+    lv_obj_set_height(ui_arcBattery, 130);
+    lv_obj_set_x(ui_arcBattery, -75);
+    lv_obj_set_y(ui_arcBattery, -18);
     lv_obj_set_align(ui_arcBattery, LV_ALIGN_CENTER);
     lv_obj_clear_flag(ui_arcBattery, LV_OBJ_FLAG_CLICKABLE);      /// Flags
     lv_arc_set_value(ui_arcBattery, 0);
@@ -41,7 +44,7 @@ void ui_scrHome_screen_init(void)
     lv_obj_set_width(ui_lblTemp, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_lblTemp, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_lblTemp, 80);
-    lv_obj_set_y(ui_lblTemp, -30);
+    lv_obj_set_y(ui_lblTemp, -70);
     lv_obj_set_align(ui_lblTemp, LV_ALIGN_CENTER);
     lv_label_set_text(ui_lblTemp, "--.- °C");
 
@@ -49,7 +52,7 @@ void ui_scrHome_screen_init(void)
     lv_obj_set_width(ui_lblUptime, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_lblUptime, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_lblUptime, 80);
-    lv_obj_set_y(ui_lblUptime, 30);
+    lv_obj_set_y(ui_lblUptime, -35);
     lv_obj_set_align(ui_lblUptime, LV_ALIGN_CENTER);
     lv_label_set_text(ui_lblUptime, "00:00:00");
 
@@ -57,7 +60,7 @@ void ui_scrHome_screen_init(void)
     lv_obj_set_width(ui_lblTempTitle, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_lblTempTitle, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_lblTempTitle, 80);
-    lv_obj_set_y(ui_lblTempTitle, -55);
+    lv_obj_set_y(ui_lblTempTitle, -88);
     lv_obj_set_align(ui_lblTempTitle, LV_ALIGN_CENTER);
     lv_label_set_text(ui_lblTempTitle, "Temperatura");
 
@@ -65,9 +68,31 @@ void ui_scrHome_screen_init(void)
     lv_obj_set_width(ui_lblUptimeTitle, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_lblUptimeTitle, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_lblUptimeTitle, 80);
-    lv_obj_set_y(ui_lblUptimeTitle, 5);
+    lv_obj_set_y(ui_lblUptimeTitle, -53);
     lv_obj_set_align(ui_lblUptimeTitle, LV_ALIGN_CENTER);
     lv_label_set_text(ui_lblUptimeTitle, "Tiempo activo");
+
+    ui_pnlStatus = lv_obj_create(ui_scrHome);
+    lv_obj_set_width(ui_pnlStatus, 100);
+    lv_obj_set_height(ui_pnlStatus, 44);
+    lv_obj_set_x(ui_pnlStatus, 80);
+    lv_obj_set_y(ui_pnlStatus, 25);
+    lv_obj_set_align(ui_pnlStatus, LV_ALIGN_CENTER);
+    lv_obj_set_flex_flow(ui_pnlStatus, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(ui_pnlStatus, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_pnlStatus, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_lblStatusIcon = lv_label_create(ui_pnlStatus);
+    lv_obj_set_width(ui_lblStatusIcon, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_lblStatusIcon, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_lblStatusIcon, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_lblStatusIcon, "?");
+
+    ui_lblStatusText = lv_label_create(ui_pnlStatus);
+    lv_obj_set_width(ui_lblStatusText, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_lblStatusText, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_lblStatusText, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_lblStatusText, "--");
 
 }
 
@@ -83,5 +108,8 @@ void ui_scrHome_screen_destroy(void)
     ui_lblUptime = NULL;
     ui_lblTempTitle = NULL;
     ui_lblUptimeTitle = NULL;
+    ui_pnlStatus = NULL;
+    ui_lblStatusIcon = NULL;
+    ui_lblStatusText = NULL;
 
 }
