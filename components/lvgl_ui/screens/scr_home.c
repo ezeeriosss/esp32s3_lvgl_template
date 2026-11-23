@@ -13,6 +13,16 @@ static const char *TAG = "scr_home";
 
 static lv_timer_t *s_timer = NULL;
 
+/* Battery arc color bands */
+typedef enum {
+    ARC_BAND_UNSET = -1,
+    ARC_BAND_LOW,       /* < 20 % or no reading -> red   */
+    ARC_BAND_MID,       /* 20 .. 50 %           -> amber */
+    ARC_BAND_HIGH,      /* > 50 %               -> green */
+} arc_band_t;
+
+static arc_band_t s_arc_band = ARC_BAND_UNSET;
+
 /*
  * Lifecycle driven by LVGL screen events (registered once in prepare()):
  *   LV_EVENT_SCREEN_LOAD_START -> refresh_all(), so the widgets never show
@@ -27,6 +37,26 @@ static lv_timer_t *s_timer = NULL;
 /* Widget refresh helpers                                               */
 /* ------------------------------------------------------------------ */
 
+/** Color the arc indicator by battery level; only touches the style when the band changes. */
+static void update_arc_color(int pct)
+{
+    arc_band_t band;
+    if (pct > 50) {
+        band = ARC_BAND_HIGH;
+    } else if (pct >= 20) {
+        band = ARC_BAND_MID;
+    } else {
+        band = ARC_BAND_LOW;    /* includes pct < 0 (no reading) */
+    }
+    if (band == s_arc_band) return;
+    s_arc_band = band;
+
+    lv_palette_t palette = (band == ARC_BAND_HIGH) ? LV_PALETTE_GREEN
+                         : (band == ARC_BAND_MID)  ? LV_PALETTE_AMBER
+                                                   : LV_PALETTE_RED;
+    lv_obj_set_style_arc_color(ui_arcBattery, lv_palette_main(palette), LV_PART_INDICATOR);
+}
+
 static void refresh_battery(void)
 {
     float v = -1.0f;
@@ -39,6 +69,7 @@ static void refresh_battery(void)
         lv_arc_set_value(ui_arcBattery, 0);
         lv_label_set_text_static(ui_lblBatPct, "--%");
     }
+    update_arc_color(pct);
 }
 
 static void refresh_temperature(void)
