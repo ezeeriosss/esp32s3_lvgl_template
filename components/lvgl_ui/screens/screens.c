@@ -4,6 +4,7 @@
 #include "scr_system.h"
 #include "scr_settings.h"
 #include "ui_input.h"
+#include "nav_bar.h"
 #include "ui.h"             /* Squareline export — screen object declarations */
 #include "esp_log.h"
 
@@ -95,6 +96,7 @@ void ui_screens_step(void)
             if (screen_configs[current].init) {
                 screen_configs[current].init();
             }
+            nav_bar_set_active(current);
             ui_input_focus_screen(current);
         }
         s_active_screen = current;
