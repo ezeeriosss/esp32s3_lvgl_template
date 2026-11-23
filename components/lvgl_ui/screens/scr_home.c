@@ -2,14 +2,22 @@
 #include "screens.h"
 #include "ui.h"             /* Squareline widgets: ui_scrHome, ui_arcBattery, ui_lbl* */
 #include "bsp_battery.h"
+#include "bsp_temp.h"
 #include "esp_log.h"
+#include <stdio.h>
 
 static const char *TAG = "scr_home";
+
+#define HOME_REFRESH_PERIOD_MS 1000
+
+static lv_timer_t *s_timer = NULL;
 
 /*
  * Lifecycle driven by LVGL screen events (registered once in prepare()):
  *   LV_EVENT_SCREEN_LOAD_START -> refresh_all(), so the widgets never show
  *                                 their Squareline placeholders when entering.
+ *   LV_EVENT_SCREEN_LOADED     -> create the 1 s refresh lv_timer.
+ *   LV_EVENT_SCREEN_UNLOADED   -> delete the refresh lv_timer.
  * The splash -> home transition happens after prepare(), so these events
  * are always delivered (see the startup note in scr_splash.c).
  */
@@ -32,9 +40,30 @@ static void refresh_battery(void)
     }
 }
 
+static void refresh_temperature(void)
+{
+    float c;
+    if (bsp_temp_get_celsius(&c) == ESP_OK) {
+        /* LV_SPRINTF_USE_FLOAT is off: format the float with snprintf.
+         * \xC2\xB0 = UTF-8 degree sign (included in the Montserrat fonts). */
+        char buf[24];
+        snprintf(buf, sizeof buf, "%.1f \xC2\xB0" "C", c);
+        lv_label_set_text(ui_lblTemp, buf);
+    } else {
+        lv_label_set_text_static(ui_lblTemp, "--.- \xC2\xB0" "C");
+    }
+}
+
 static void refresh_all(void)
 {
     refresh_battery();
+    refresh_temperature();
+}
+
+static void home_timer_cb(lv_timer_t *timer)
+{
+    (void)timer;
+    refresh_all();
 }
 
 /* ------------------------------------------------------------------ */
@@ -45,6 +74,23 @@ static void on_load_start(lv_event_t *e)
 {
     (void)e;
     refresh_all();
+}
+
+static void on_loaded(lv_event_t *e)
+{
+    (void)e;
+    if (s_timer == NULL) {
+        s_timer = lv_timer_create(home_timer_cb, HOME_REFRESH_PERIOD_MS, NULL);
+    }
+}
+
+static void on_unloaded(lv_event_t *e)
+{
+    (void)e;
+    if (s_timer != NULL) {
+        lv_timer_del(s_timer);
+        s_timer = NULL;
+    }
 }
 
 /* ------------------------------------------------------------------ */
@@ -60,6 +106,8 @@ void scr_home_prepare(void)
     lv_obj_clear_flag(ui_arcBattery, LV_OBJ_FLAG_CLICKABLE); /* indicator only */
 
     lv_obj_add_event_cb(ui_scrHome, on_load_start, LV_EVENT_SCREEN_LOAD_START, NULL);
+    lv_obj_add_event_cb(ui_scrHome, on_loaded, LV_EVENT_SCREEN_LOADED, NULL);
+    lv_obj_add_event_cb(ui_scrHome, on_unloaded, LV_EVENT_SCREEN_UNLOADED, NULL);
 }
 
 void scr_home_init(void)
